@@ -9,43 +9,43 @@ function createPiece(type) {
         return [
             [0, 0, 0],
             [1, 1, 1],
-            [0, 1, 0]
+            [0, 1, 0],
         ];
-    } else if (type === 'O'){
+    } else if (type === 'O') {
         return [
             [1, 1],
-            [1, 1]
+            [1, 1],
         ]
-    } else if (type === 'L'){
+    } else if (type === 'L') {
         return [
             [0, 1, 0],
             [0, 1, 0],
-            [0, 1, 1]
+            [0, 1, 1],
         ]
-    } else if (type === 'J'){
+    } else if (type === 'J') {
         return [
             [0, 1, 0],
             [0, 1, 0],
-            [1, 1, 0]
+            [1, 1, 0],
         ]
-    } else if (type === 'I'){
+    } else if (type === 'I') {
         return [
             [0, 1, 0, 0],
             [0, 1, 0, 0],
-            [0, 1, 0, 0]
-            [0, 1, 0, 0]
+            [0, 1, 0, 0],
+            [0, 1, 0, 0],
         ]
-    } else if (type === 'Z'){
+    } else if (type === 'Z') {
         return [
             [1, 1, 0],
             [0, 1, 1],
-            [0, 0, 0]
+            [0, 0, 0],
         ]
-    } else if (type === 'S'){
+    } else if (type === 'S') {
         return [
             [0, 1, 1],
             [1, 1, 0],
-            [0, 0, 0]
+            [0, 0, 0],
         ]
     }
 }
@@ -79,13 +79,16 @@ function draw() {
     context.fillStyle = '#000';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    drawMatrix(arena, {x : 0, y: 0});
+    drawMatrix(arena, { x: 0, y: 0 });
     drawMatrix(player.matrix, player.pos);
 }
 
 //copy player's end position and save it in the arena
 function merge(arena, player) {
     player.matrix.forEach((row, y) => {
+        if (!row){
+            return;
+        }
         row.forEach((value, x) => {
             if (value !== 0) {
                 arena[y + player.pos.y][x + player.pos.x] = value;
@@ -104,22 +107,22 @@ function playerDrop() {
     dropCounter = 0;
 }
 
-function playerMove(dir){
+function playerMove(dir) {
     player.pos.x += dir;
-    if (collide(arena, player)){
+    if (collide(arena, player)) {
         player.pos.x -= dir;
     }
 }
 
-function playerRotate(dir){
+function playerRotate(dir) {
     const pos = player.pos.x;
     let offset = 1;
     rotate(player.matrix, dir);
     // check if rotation is possible (element won't collide with arena)
-    while (collide(arena, player)){
+    while (collide(arena, player)) {
         player.pos.x += offset;
         offset = -((offset) + (offset > 0 ? 1 : -1));
-        if (offset > player.matrix[0].length){
+        if (offset > player.matrix[0].length) {
             rotate(player.matrix, -dir)
             player.pos.x = pos;
             return;
@@ -127,31 +130,34 @@ function playerRotate(dir){
     }
 }
 
-function playerReset(){
+function playerReset() {
     // pieces types
     const pieces = 'ILJOTSZ';
     // generate piece randomly
     player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
     // set player start position
     player.pos.y = 0;
-    player.pos.x = (arena[0].length / 2 | 0) - 
-                (player.matrix[0].length/2 | 0);
+    player.pos.x = (arena[0].length / 2 | 0) -
+        (player.matrix[0].length / 2 | 0);
+    if (collide(arena, player)) {
+        arena.forEach(row => row.fill(0));
+    }
 }
 
-function rotate(matrix, dir){
-    for (let y = 0; y < matrix.length; ++y){
-        for (let x = 0; x < y; ++x){
+function rotate(matrix, dir) {
+    for (let y = 0; y < matrix.length; ++y) {
+        for (let x = 0; x < y; ++x) {
             [
                 matrix[x][y],
                 matrix[y][x],
             ] = [
-                matrix[y][x],
-                matrix[x][y],
-            ];
+                    matrix[y][x],
+                    matrix[x][y],
+                ];
         }
     }
 
-    if (dir > 0){
+    if (dir > 0) {
         matrix.forEach(row => row.reverse());
     } else {
         matrix.reverse();
@@ -178,7 +184,7 @@ function update(time = 0) {
 
 function drawMatrix(matrix, offset) {
     matrix.forEach((row, y) => {
-        if (!row){
+        if (!row) {
             return;
         }
         row.forEach((value, x) => {
