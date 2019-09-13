@@ -18,6 +18,11 @@ function draw() {
     drawMatrix(player.matrix, player.pos);
 }
 
+function playerDrop(){
+    player.pos.y++;
+    dropCounter = 0;
+}
+
 // initial drop counter 
 let dropCounter = 0;
 // screen will be updated every second
@@ -30,8 +35,7 @@ function update(time = 0) {
     // if drop counter is more than 1s, update the screen
     dropCounter += deltaTime;
     if(dropCounter > dropInterval) {
-        player.pos.y++;
-        dropCounter = 0;
+        playerDrop();
     }
     draw();
     requestAnimationFrame(update);
@@ -54,6 +58,23 @@ const player = {
     pos: { x: 5, y: 5 },
     matrix: matrix
 }
+
+document.addEventListener('keydown', (event) => {
+    switch(event.keyCode){
+        case 37: {
+            player.pos.x--;
+            break;
+        }
+        case 39: {
+            player.pos.x++;
+            break;
+        }
+        case 40: {
+            playerDrop();
+            break;
+        }
+    }
+})
 
 update();
 
