@@ -3,6 +3,26 @@ const context = canvas.getContext('2d');
 //scale context for bigger elements
 context.scale(20, 20);
 
+function arenaSweep() {
+    let rowCount = 1;
+    outer: for (let y = arena.length - 1; y > 0; --y) {
+        for (let x = 0; x < arena[y].length; ++x) {
+            if (arena[y][x] === 0) {
+                continue outer;
+            }
+        }
+        // take out row from the arena and fill it with blanks
+        const row = arena.splice(y, 1)[0].fill(0);
+        // insert blank row on top of the arena
+        arena.unshift(row);
+        ++y;
+        // increase player score
+        player.score += rowCount * 10;
+        // bonus for multiple row
+        rowCount *= 2;
+    }
+
+}
 
 function createPiece(type) {
     if (type === 'T') {
@@ -83,10 +103,26 @@ function draw() {
     drawMatrix(player.matrix, player.pos);
 }
 
+function drawMatrix(matrix, offset) {
+    matrix.forEach((row, y) => {
+        if (!row) {
+            return;
+        }
+        row.forEach((value, x) => {
+            if (value !== 0) {
+                context.fillStyle = colors[value];
+                context.fillRect(x + offset.x,
+                    y + offset.y,
+                    1, 1);
+            }
+        })
+    });
+};
+
 //copy player's end position and save it in the arena
 function merge(arena, player) {
     player.matrix.forEach((row, y) => {
-        if (!row){
+        if (!row) {
             return;
         }
         row.forEach((value, x) => {
@@ -103,6 +139,8 @@ function playerDrop() {
         player.pos.y--;
         merge(arena, player);
         playerReset();
+        arenaSweep();
+        updateScore();
     }
     dropCounter = 0;
 }
@@ -141,6 +179,8 @@ function playerReset() {
         (player.matrix[0].length / 2 | 0);
     if (collide(arena, player)) {
         arena.forEach(row => row.fill(0));
+        player.score = 0;
+        updateScore();
     }
 }
 
@@ -156,7 +196,6 @@ function rotate(matrix, dir) {
                 ];
         }
     }
-
     if (dir > 0) {
         matrix.forEach(row => row.reverse());
     } else {
@@ -182,33 +221,23 @@ function update(time = 0) {
     requestAnimationFrame(update);
 }
 
-function drawMatrix(matrix, offset) {
-    matrix.forEach((row, y) => {
-        if (!row) {
-            return;
-        }
-        row.forEach((value, x) => {
-            if (value !== 0) {
-                context.fillStyle = colors[value];
-                context.fillRect(x + offset.x,
-                    y + offset.y,
-                    1, 1);
-            }
-        })
-    });
-};
+function updateScore(){
+    document.getElementById('score').innerText = player.score;
+}
+
 
 const colors = [
-    null, 'crimson', 'turquoise', 'mediumslateblue', 'tomato', 'chartreuse', 'deepskyblue',  
-    'gold', 
+    null, 'crimson', 'turquoise', 'mediumslateblue',
+    'tomato', 'chartreuse', 'deepskyblue', 'gold',
 ]
 
 // arena to display game progress
 const arena = createMatrix(12, 20);
 
 const player = {
-    pos: { x: 5, y: 5 },
-    matrix: createPiece('T'),
+    pos: { x: 0, y: 0 },
+    matrix: null,
+    score: 0,
 }
 
 document.addEventListener('keydown', (event) => {
@@ -236,6 +265,8 @@ document.addEventListener('keydown', (event) => {
     }
 })
 
+playerReset();
+updateScore();
 update();
 
 
